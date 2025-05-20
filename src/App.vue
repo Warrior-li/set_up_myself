@@ -20,8 +20,14 @@
             </ul>
         </header>
         <router-view id="container-view"></router-view>
-        <footer id="container-footer">
-            Powered by <a href="https://github.com/Warrior-li" target="_blank">Warrior-li</a>
+        <footer id="container-footer" class="footer-flex">
+            <div class="footer-left">
+                <button @click="switchLang('zh')">简体中文</button>
+                <button @click="switchLang('en')">English</button>
+            </div>
+            <div class="footer-right">
+                Powered by <a href="https://github.com/Warrior-li" target="_blank">Warrior-li</a>
+            </div>
         </footer>
     </div>
 </template>
@@ -35,6 +41,13 @@ export default defineComponent({
     data: function () {
         return {
             config: useStore().state.config as Config
+        }
+    },
+    methods: {
+        switchLang(lang: string) {
+            // 简单方式：存入 localStorage 并刷新页面
+            localStorage.setItem('lang', lang);
+            location.reload();
         }
     }
 })
@@ -101,6 +114,33 @@ footer {
     margin: 20px auto 15px;
     padding-top: 10px;
     text-align: right
+}
+
+.footer-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-left button {
+    margin-right: 10px;
+    background: none;
+    border: 1px solid #DBDBDB;
+    color: #DBDBDB;
+    font-family: "Source Code Pro", monospace;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+.footer-left button:hover {
+    background-color: #DBDBDB;
+    color: #000;
+}
+
+.footer-right {
+    text-align: right;
 }
 
 header {

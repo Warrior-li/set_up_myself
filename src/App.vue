@@ -21,7 +21,7 @@
         </header>
         <router-view id="container-view"></router-view>
         <footer id="container-footer">
-            Powered by <a href="https://github.com/LucienShui/i-am-lucien" target="_blank">I am Lucien</a>
+            Powered by <a href="https://github.com/Warrior-li" target="_blank">Warrior-li</a>
         </footer>
     </div>
 </template>

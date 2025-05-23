@@ -1,77 +1,71 @@
 <script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useStore, type Config } from '../store'; // 路径按实际调整
+import axios from 'axios';
 
+const store = useStore();
+const route = useRoute();
+
+/* ----------------- state ----------------- */
+const config = ref<Config>({} as Config);
+const pageMap = ref<Record<string, string>>({});
+const html = ref('');
+
+/* -------------- helpers ------------------ */
+const hasCache = (ns: string, key: string) =>
+  ns in store.state.cache && key in store.state.cache[ns];
+
+const loadPage = async (page: string, cb?: (h: string) => void) => {
+  if (!pageMap.value[page]) return;
+
+  const url = pageMap.value[page];
+  const ns = 'page';
+
+  if (hasCache(ns, url)) {
+    cb?.(store.state.cache[ns][url]);
+    return;
+  }
+
+  try {
+    const { data } = await axios.get<string>(url);
+    store.commit({ type: 'put', namespace: ns, key: url, value: data });
+    cb?.(data);
+  } catch (err: any) {
+    if (err?.response?.status === 404) cb?.(`请求的页面 ${url} 不存在`);
+  }
+};
+
+const updatePageCallback = (h: string) => {
+  if (html.value !== h) html.value = h;
+};
+
+/* ----------------- lifecycle ----------------- */
+onMounted(() => {
+  config.value = store.state.config;
+  // 建立 url → path 的映射
+  config.value.header.forEach((p) => {
+    if (!p.path.startsWith('redirect:')) pageMap.value[p.url] = p.path;
+  });
+
+  // 首屏
+  loadPage(`/${route.params.page as string}`, updatePageCallback);
+
+  // 预缓存所有静态页
+  Object.values(pageMap.value).forEach((p) => loadPage(p));
+});
+
+/* --------------- watchers ------------------ */
+watch(
+  () => route.params.page,
+  (val) => loadPage(`/${val as string}`, updatePageCallback)
+);
 </script>
 
 <template>
-    <div v-html="html"></div>
+  <div v-html="html"></div>
 </template>
 
-<script lang="ts">
-import {defineComponent} from "vue";
-import {useStore, Config} from "../store";
-
-export default defineComponent({
-    name: "DynamicPage",
-    data: function () {
-        return {
-            store: useStore(),
-            config: {} as Config,
-            page: {} as { [key: string]: string },
-            html: ''
-        }
-    },
-    methods: {
-        hasCache: function (namespace: string, key: string): boolean {
-            return namespace in this.store.state.cache && key in this.store.state.cache[namespace];
-        },
-        loadPage: function (page: string, callback?: (html: string) => void) {
-            if (!(page in this.page)) {
-                return
-            }
-            let url = this.page[page];
-            let namespace: string = 'page';
-            if (this.hasCache(namespace, url)) {
-                callback?.(this.store.state.cache[namespace][url]);
-            } else {
-                this.axios.get(url).then(response => response.data).then(html => {
-                    this.store.commit({
-                        type: 'put',
-                        namespace: namespace,
-                        key: url,
-                        value: html
-                    });
-                    callback?.(html);
-                }).catch(error => {
-                    if (error.response.status === 404) {
-                        callback?.(`请求的页面 ${url} 不存在`)
-                    }
-                })
-            }
-        },
-        updatePageCallback: function (html: string) {
-            if (this.html !== html) {
-                this.html = html;
-            }
-        }
-    },
-    watch: {
-        '$route.params.page': function () {
-            this.loadPage(`/${this.$route.params.page}`, this.updatePageCallback);
-        }
-    },
-    mounted: function () {
-        this.config = this.store.state.config;
-        for (let page of this.config.header) {
-            if (!page.path.startsWith('redirect:')) {
-                this.page[page.url] = page.path;
-            }
-        }
-        this.loadPage(`/${this.$route.params.page}`, this.updatePageCallback);
-        Array.from(Object.values(this.page)).forEach(each => this.loadPage(each))
-    }
-});
-</script>
-
 <style scoped>
-
+/* 保持原样 */
 </style>

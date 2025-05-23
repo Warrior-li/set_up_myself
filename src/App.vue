@@ -22,8 +22,8 @@
         <router-view id="container-view"></router-view>
         <footer id="container-footer" class="footer-flex">
             <div class="footer-left">
-                <button @click="switchLang('zh')">简体中文</button>
-                <button @click="switchLang('en')">English</button>
+                <!-- <button @click="switchLang('zh')">简体中文</button>
+                <button @click="switchLang('en')">English</button> -->
             </div>
             <div class="footer-right">
                 Powered by <a href="https://github.com/Warrior-li" target="_blank">Warrior-li</a>
